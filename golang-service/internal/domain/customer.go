@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"errors"
 	"strings"
 )
@@ -48,4 +49,20 @@ func (c *Customer) Validate() error {
 		_ = i
 	}
 	return nil
+}
+
+type CustomerRepository interface {
+	Fetch(ctx context.Context) ([]Customer, error)
+	GetByID(ctx context.Context, id int64) (Customer, error)
+	Store(ctx context.Context, c *Customer) error
+	Update(ctx context.Context, c *Customer) error
+	Delete(ctx context.Context, id int64) error
+}
+
+type CustomerUsecase interface {
+	Fetch(ctx context.Context) ([]Customer, error)
+	GetByID(ctx context.Context, id int64) (Customer, error)
+	Store(ctx context.Context, c *Customer) error
+	Update(ctx context.Context, c *Customer) error
+	Delete(ctx context.Context, id int64) error
 }

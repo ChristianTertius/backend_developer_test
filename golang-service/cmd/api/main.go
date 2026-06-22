@@ -10,7 +10,11 @@ import (
 	"time"
 
 	"github.com/ChristianTertius/backend_developer_test/internal/config"
+	customerHTTP "github.com/ChristianTertius/backend_developer_test/internal/customer/delivery/http"
+	customerRepo "github.com/ChristianTertius/backend_developer_test/internal/customer/repository"
+	customerUC "github.com/ChristianTertius/backend_developer_test/internal/customer/usecase"
 	"github.com/ChristianTertius/backend_developer_test/internal/database"
+	"github.com/ChristianTertius/backend_developer_test/internal/middleware"
 	nationalityHTTP "github.com/ChristianTertius/backend_developer_test/internal/nationality/delivery/http"
 	nationalityRepo "github.com/ChristianTertius/backend_developer_test/internal/nationality/repository"
 	nationalityUC "github.com/ChristianTertius/backend_developer_test/internal/nationality/usecase"
@@ -28,12 +32,18 @@ func main() {
 
 	const timeout = 10 * time.Second
 
+	cRepo := customerRepo.NewPostgresCustomerRepository(db)
+	cUC := customerUC.NewCustomerUsecase(cRepo, timeout)
+
 	nRepo := nationalityRepo.NewPostgresNationalityRepository(db)
 	nUC := nationalityUC.NewNationalityUseCase(nRepo, timeout)
 
 	router := mux.NewRouter()
 	api := router.PathPrefix("/api").Subrouter()
+	api.Use(middleware.Logger)
+	api.Use(middleware.CORS)
 
+	customerHTTP.NewCustomerHandler(api, cUC)
 	nationalityHTTP.NewNationalityHandler(api, nUC)
 
 	api.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
